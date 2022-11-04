@@ -1,0 +1,21 @@
+type Movie @rootEntity {
+  title: String
+  actors: [Actor] @relation
+  country: Country @relation
+}
+
+type Actor @rootEntity {
+  name: String
+  movies: [Movie] @relation(inverseOf: "actors")
+}
+
+type Country @rootEntity {
+  name: String
+}
+
+type HandlingUnit @rootEntity {
+  childHandlingUnits: [HandlingUnit] @relation
+  parentHandlingUnit: HandlingUnit @relation(inverseOf: "childHandlingUnits")
+  allInnerHandlingUnits: [HandlingUnit] @collect(path: "childHandlingUnits{1,3}")
+  name: String
+}

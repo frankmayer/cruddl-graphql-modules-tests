@@ -1,4 +1,6 @@
-import { createServer } from "@graphql-yoga/node";
+import { createServer as createNodeServer } from "node:http";
+import { createServer as createYogaNodeServer } from "@graphql-yoga/node";
+
 import { createYoga, createSchema } from "graphql-yoga";
 import { useGraphQLModules } from "@envelop/graphql-modules";
 import fs from "fs";
@@ -59,6 +61,7 @@ const project = new Project({
 
 // create cruddle schema
 const cruddlSchema = project.createSchema(db);
+db.updateSchema(project.getModel()); // create missing collections
 console.log("cruddle schema object", cruddlSchema);
 
 // suggested way of converting schema to module in https://github.com/jycouet/kitql/discussions/260#discussioncomment-4051505
@@ -70,7 +73,9 @@ console.log("cruddle schema object", cruddlSchema);
 //     resolvers: schema.resolvers
 // })
 
-// note: starting a graphql server via modules / application server (alternatively use code below)
+
+
+// note: starting a graphql server via modules / application server (alternatively check non module approach code below)
 
 const application = createApplication({
   modules: [
@@ -79,23 +84,25 @@ const application = createApplication({
   ],
 });
 
-const server = createServer({
+const server = createYogaNodeServer({
   plugins: [useGraphQLModules(application)],
   port: 4000,
 });
+
 
 server.start().then(() => {
   console.log(`🚀 Server ready on http://localhost:4000/graphql`);
 });
 
-//note: alternatively for when server is created directly with yoga and is injected a schema
-// Create a Yoga instance with a GraphQL schema.
-// const yoga = createYoga({ someSchema })
 
-// Pass it into a server to hook into request handlers.
-// const server = createServer(yoga)
+// note: Scenario for when server is created with a non module approach being directly injected a cruddl schema
 
-// Start the server and you're done!
-// server.listen(4000, () => {
-//   console.info("Server is running on http://localhost:4000/graphql");
+// const yoga = createYoga({
+//   schema: cruddlSchema,
 // });
+
+// const server = createNodeServer(yoga);
+
+// server.listen(4000, () => {
+//   console.info('Server is running on http://localhost:4000/graphql')
+// })
